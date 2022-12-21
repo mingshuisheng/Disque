@@ -1,0 +1,4 @@
+.idea
+build
+disque-frontend/node_modules
+DisqueBackend/disqueBackend.exe
