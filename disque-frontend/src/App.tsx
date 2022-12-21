@@ -1,19 +1,48 @@
-import { Component, createSignal } from 'solid-js';
+import {Component} from 'solid-js';
 import './App.scss';
-import Counter from './Counter';
+import {Link, useLocation, useRoutes} from "@solidjs/router";
+import {routes} from "./routes";
+
 
 const App: Component = () => {
-  const [counter, setCounter] = createSignal(0);
-  setInterval(setCounter, 1000, (c: number) => c + 1);
-
-  return (
+  const location = useLocation()
+  const Route = useRoutes(routes)
+  return(
     <>
-      <div>
-        <h1 class="header">{counter()}</h1>
-      </div>
-      <Counter />
+      <nav>
+        <ul>
+          <li >
+            <Link href="/">
+              Home
+            </Link>
+          </li>
+          <li >
+            <Link href="/about">
+              About
+            </Link>
+          </li>
+          <li >
+            <Link href="/error" >
+              Error
+            </Link>
+          </li>
+
+          <li >
+            <span>URL:</span>
+            <input
+              type="text"
+              readOnly
+              value={location.pathname}
+            />
+          </li>
+        </ul>
+      </nav>
+
+      <main>
+        <Route />
+      </main>
     </>
-  );
+  )
 };
 
 export default App;
