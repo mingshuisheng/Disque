@@ -6,10 +6,11 @@ import {FolderIcon} from "../../../icons";
 
 export interface FolderProps extends BaseProps {
   name?: string
+  onClick?(): void
 }
 
 export const Folder: Component<FolderProps> = (props) => {
   return(
-    <FileBase icon={<FolderIcon/>} name={props.name}/>
+    <FileBase onClick={props.onClick} icon={<FolderIcon/>} name={props.name}/>
   )
 }
