@@ -1,7 +1,12 @@
 /* @refresh reload */
-import { render } from 'solid-js/web';
-import {Router, hashIntegration} from "@solidjs/router";
+import {render} from 'solid-js/web';
+
 import App from './App';
+import {HopeProvider} from '@hope-ui/solid'
 import "./index.scss"
 
-render(() => (<Router source={hashIntegration()}><App /></Router>), document.getElementById('root') as HTMLElement);
+render(() => (
+  <HopeProvider>
+      <App/>
+  </HopeProvider>
+), document.getElementById('root') as HTMLElement);

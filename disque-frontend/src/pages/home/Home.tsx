@@ -1,33 +1,73 @@
-import {Component, For} from "solid-js";
-import "./Home.scss"
-import {ClassNameUtils} from "../../utils";
-import {FlexLayout, Folder} from "../../components";
-import {HomeLeft} from "./HomeLeft";
+import {Component, createResource, For, onMount} from "solid-js";
 import {HomeTop} from "./HomeTop";
-import {fileList} from "../../api";
+import {FileData} from "../../types";
+import {fileList, intFileList} from "../../global/state/path";
+import {Flex} from "@hope-ui/solid";
+import {Folder, PopMenuItem} from "../../components";
+import {useMatch, useParams} from "@solidjs/router";
+import {gotoFolder} from "../../routes";
 
 
-const {rootClass, className} = ClassNameUtils.create("disque-home");
+type FolderItem = {
+  name: string
+  onClick: () => void
+}
+
+function renderFolder(file: FileData) {
+  const handlerClick = async (file: FileData) => {
+    gotoFolder(file.ID)
+  }
+
+  const items: FolderItem[] = [
+    {
+      name: "下载",
+      onClick: () => {
+        alert("正在下载")
+      }
+    },
+    {
+      name: "重命名",
+      onClick: () => {
+        alert("重命名")
+      }
+    },
+    {
+      name: "移动",
+      onClick: () => {
+        alert("文件夹移动")
+      }
+    }
+  ]
+
+  const renderItem = (item: FolderItem) => <PopMenuItem onSelect={item.onClick}>{item.name}</PopMenuItem>
+
+  return (
+    <Folder onClick={() => handlerClick(file)} name={file.Name}>
+      <For each={items}>
+        {renderItem}
+      </For>
+    </Folder>
+  )
+}
 
 const Home: Component = () => {
-
-  let handlerClick = async () => {
-    let result = await fileList();
-    console.log(`name: ${result.name},age: ${result.age}`)
+  const params = useParams();
+  const match = useMatch(() => "/folder/:fileID");
+  const loadFileList = () => intFileList(params.fileID ? parseInt(params.fileID) : 0);
+  onMount(loadFileList)
+  if (!!match()) {
+    createResource(() => params.fileID, loadFileList)
   }
 
   return (
-    <div class={rootClass()}>
-      <FlexLayout head={<HomeLeft></HomeLeft>}>
-        <FlexLayout direction="column" head={<HomeTop></HomeTop>}>
-          <div class={className("file-list")}>
-            <For each={new Array<null>(80)}>
-              {(e, i) => <Folder onClick={handlerClick} name={`文件夹${i()}`}/>}
-            </For>
-          </div>
-        </FlexLayout>
-      </FlexLayout>
-    </div>
+    <Flex bg="$whiteAlpha1" direction="column" minW="$full">
+      <HomeTop/>
+      <Flex wrap="wrap" overflowY="auto" gap="20px">
+        <For each={fileList()}>
+          {renderFolder}
+        </For>
+      </Flex>
+    </Flex>
   )
 }
 

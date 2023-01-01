@@ -1,4 +1,7 @@
 .idea
+.vscode
 build
 disque-frontend/node_modules
 DisqueBackend/disqueBackend.exe
+DisqueBackend/test.db
+DisqueBackend/upload
