@@ -17,7 +17,13 @@ func Init() {
 
 	err = db.AutoMigrate(&models.File{})
 	if err != nil {
-		panic("failed to migrate")
+		panic("failed to migrate models.File")
+	}
+
+	err = db.AutoMigrate(&models.LocalFile{})
+
+	if err != nil {
+		panic("failed to migrate models.LocalFile")
 	}
 
 	DB = db

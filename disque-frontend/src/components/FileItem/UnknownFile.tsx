@@ -1,23 +1,23 @@
 import {Component, splitProps} from "solid-js";
 import {FileBase} from "./FileBase";
-import {FolderIcon} from "../../icons";
+import {UnKnownIcon} from "../../icons";
 import {ElementType, HTMLHopeProps} from "@hope-ui/solid/dist/components/types";
 import {PopMenu, PopMenuContent, PopMenuGroup, PopMenuTrigger} from "../PopMenu";
 
-export interface FolderPropsOptions{
+export interface UnknownFilePropsOptions {
   name?: string
 }
 
-type FolderProps<C extends ElementType = "div"> = HTMLHopeProps<C, FolderPropsOptions>
+type UnknownFileProps<C extends ElementType = "div"> = HTMLHopeProps<C, UnknownFilePropsOptions>
 
-type TriggerItemProps<C extends ElementType="div"> = HTMLHopeProps<C>
+type TriggerItemProps<C extends ElementType = "div"> = HTMLHopeProps<C>
 
-export const Folder: Component<FolderProps> = (props) => {
+export function UnknownFile(props: UnknownFileProps) {
 
-  function TriggerItem<C extends ElementType="div" > (triggerProps: TriggerItemProps<C>) {
+  function TriggerItem<C extends ElementType = "div">(triggerProps: TriggerItemProps<C>) {
     const [_local, others] = splitProps(triggerProps as TriggerItemProps<"div">, ["onClick"])
     return (
-      <FileBase {...others} onClick={props.onClick} icon={<FolderIcon/>} name={props.name}/>
+      <FileBase {...others} onClick={props.onClick} icon={<UnKnownIcon/>} name={props.name}/>
     )
   }
 

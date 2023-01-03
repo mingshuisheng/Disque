@@ -62,9 +62,9 @@ export const HomeTop: Component = () => {
     inputEl?.click()
   }
 
-  const handlerFileInputChange = (event: Event & {target: any}) => {
-    console.log("input:", event.target.files)
-    uploadFile(event.target.files[0])
+  const handlerFileInputChange = async (event: Event & {target: any}) => {
+    await uploadFile(event.target.files[0], currentFile().ID)
+    await reloadFileList()
   }
 
   return (

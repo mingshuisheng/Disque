@@ -6,6 +6,8 @@ import {Flex} from "@hope-ui/solid";
 import {Folder, PopMenuItem} from "../../components";
 import {useMatch, useParams} from "@solidjs/router";
 import {gotoFolder} from "../../routes";
+import {UnknownFile} from "../../components/FileItem/UnknownFile";
+import {coverURL} from "../../api/axios";
 
 
 type FolderItem = {
@@ -41,12 +43,50 @@ function renderFolder(file: FileData) {
 
   const renderItem = (item: FolderItem) => <PopMenuItem onSelect={item.onClick}>{item.name}</PopMenuItem>
 
+
   return (
     <Folder onClick={() => handlerClick(file)} name={file.Name}>
       <For each={items}>
         {renderItem}
       </For>
     </Folder>
+  )
+}
+
+function renderFile(file: FileData){
+  const handlerClick = (file: FileData) => {
+    alert("打开文件")
+  }
+
+  const items: FolderItem[] = [
+    {
+      name: "下载",
+      onClick: () => {
+        window.open(coverURL(`/file/download/${file.ID}`))
+      }
+    },
+    {
+      name: "重命名",
+      onClick: () => {
+        alert("重命名")
+      }
+    },
+    {
+      name: "移动",
+      onClick: () => {
+        alert("文件夹移动")
+      }
+    }
+  ]
+
+  const renderItem = (item: FolderItem) => <PopMenuItem onSelect={item.onClick}>{item.name}</PopMenuItem>
+
+  return (
+    <UnknownFile onClick={() => handlerClick(file)} name={file.Name}>
+      <For each={items}>
+        {renderItem}
+      </For>
+    </UnknownFile>
   )
 }
 
@@ -64,7 +104,7 @@ const Home: Component = () => {
       <HomeTop/>
       <Flex wrap="wrap" overflowY="auto" gap="20px">
         <For each={fileList()}>
-          {renderFolder}
+          {(fileData) => fileData.IsDir? renderFolder(fileData): renderFile(fileData)}
         </For>
       </Flex>
     </Flex>

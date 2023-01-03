@@ -1,7 +1,12 @@
 import axios, {AxiosResponse} from "axios";
 
+
+export const baseURL =  process.env.NODE_ENV === "development" ? "/api" : "/"
+
+export const coverURL = (url: string) => baseURL + url.startsWith("/")? baseURL + url: `${baseURL}/${url}`
+
 export const httpClient = axios.create({
-  baseURL: process.env.NODE_ENV === "development" ? "/api" : "/"
+  baseURL
 })
 
 export const handlerResult = async <T>(request: () => Promise<AxiosResponse<T>>, showLoading: boolean = true): Promise<T> => {

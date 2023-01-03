@@ -1,4 +1,13 @@
-import {Accessor, createContext, createSignal, createUniqueId, JSXElement, Show, useContext} from "solid-js";
+import {
+  Accessor,
+  createContext,
+  createEffect,
+  createSignal,
+  createUniqueId,
+  JSXElement, on, onCleanup, onMount,
+  Show,
+  useContext
+} from "solid-js";
 import {createStore} from "solid-js/store";
 import {
   getActionFromKey, getIndexByLetter,
@@ -126,10 +135,29 @@ interface PopMenuState {
   searchTimeoutId?: number;
 }
 
+const [activeID, setActiveID] = createSignal("")
+let countPopMenu = 0;
+let onGlobalContextMenu = () => setActiveID("");
+
 /**
  * The wrapper component that provides context for all its children.
  */
 export function PopMenu(props: PopMenuProps) {
+  onMount(() => {
+    if(countPopMenu === 0){
+      window.addEventListener("contextmenu", onGlobalContextMenu)
+    }
+    countPopMenu++
+  })
+
+  onCleanup(() => {
+    countPopMenu--
+    if(countPopMenu <=0 ){
+      window.removeEventListener("contextmenu", onGlobalContextMenu)
+    }
+  })
+
+
   const defaultBaseId = `hope-pop-menu-${createUniqueId()}`;
 
   const theme = useStyleConfig().Menu;
@@ -247,9 +275,17 @@ export function PopMenu(props: PopMenuProps) {
   };
 
   const onTriggerContextMenu = (event: MouseEvent) => {
+    event.stopPropagation()
     event.preventDefault()
-    updateOpeningState(!state.opened, false, false, event.clientX, event.clientY)
+    setActiveID(defaultBaseId)
+    updateOpeningState(true, false, false, event.clientX, event.clientY)
   }
+
+  createEffect(on(activeID, (id) => {
+    if(id !== defaultBaseId && state.opened){
+      updateOpeningState(false, false);
+    }
+  }, { defer: true }));
 
   const onTriggerKeyDown = (event: KeyboardEvent) => {
     const {key} = event;
@@ -343,23 +379,21 @@ export function PopMenu(props: PopMenuProps) {
     setState("ignoreBlur", true);
   };
 
-  const scheduleContentPositionAutoUpdate = (x: number, y: number) => {
-    if (state.opened) {
-      updateContentPosition(x, y);
-
-      // schedule auto update of the content position.
-      // if (triggerRef && contentRef) {
-      //   cleanupContentAutoUpdate = autoUpdate(triggerRef, contentRef, updateContentPosition);
-      // }
-    } else {
-      cleanupContentAutoUpdate?.();
-    }
+  const scheduleContentPositionAutoUpdate = async (x: number, y: number) => {
+    await updateContentPosition(x, y);
+    // if (state.opened) {
+    //
+    //
+    //   // schedule auto update of the content position.
+    //   // if (triggerRef && contentRef) {
+    //   //   cleanupContentAutoUpdate = autoUpdate(triggerRef, contentRef, updateContentPosition);
+    //   // }
+    // } else {
+    //   cleanupContentAutoUpdate?.();
+    // }
   };
 
   const updateOpeningState = (opened: boolean, callFocus = true, lastItemActive = false, x: number = 0, y: number = 0) => {
-    if (state.opened === opened) {
-      return;
-    }
 
     setState("opened", opened);
 
