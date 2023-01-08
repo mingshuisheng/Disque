@@ -13,6 +13,7 @@
 
 <script setup lang='ts'>
 import type { FileData } from '../../types'
+import { DownloadFile } from '../../utils/DownloadFile'
 
 defineOptions({
   name: 'StateFileItem'
@@ -21,6 +22,8 @@ defineOptions({
 const {file} = $defineProps<{
   file?: FileData
 }>()
+
+const download = () => DownloadFile.download(file)
 
 </script>
 

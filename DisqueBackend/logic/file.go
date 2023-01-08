@@ -125,7 +125,7 @@ func GetFileLocalPathAndFileName(ID uint) (path string, fileName string, err err
 	}
 
 	fileName = file.Name
-	path, err = getSingleFile(ID)
+	path, err = getSingleFile(file.LocalFileID)
 	return
 }
 
