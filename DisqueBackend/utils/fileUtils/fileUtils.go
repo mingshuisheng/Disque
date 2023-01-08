@@ -36,11 +36,11 @@ func generatePath() string {
 }
 
 func generateFileName(file *multipart.FileHeader, ext string) string {
-	id := uuid.New()
+	id := strings.ReplaceAll(uuid.New().String(), "-", "")
 	if ext == "" {
-		return id.String()
+		return id
 	}
-	return id.String() + "." + ext
+	return id + "." + ext
 }
 
 func getExt(file *multipart.FileHeader) string {

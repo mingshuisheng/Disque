@@ -1,8 +1,0 @@
-export * from "./PopMenu"
-// export * from "./PopMenu.styles"
-export * from "./PopMenu.utils"
-export * from "./PopMenuContent"
-export * from "./PopMenuGroup"
-export * from "./PopMenuItem"
-export * from "./PopMenuLabel"
-export * from "./PopMenuTrigger"

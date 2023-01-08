@@ -11,6 +11,7 @@ type File struct {
 	IsDir       bool
 	LocalFileID uint `json:"-"`
 	ExtType     string
+	TreeID      string `gorm:"index"`
 }
 
 type LocalFile struct {

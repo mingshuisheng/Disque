@@ -3,7 +3,6 @@ package controller
 import (
 	"disqueBackend/logic"
 	"disqueBackend/models"
-	"disqueBackend/utils/fileUtils"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -85,14 +84,7 @@ func UploadFile(ctx *gin.Context) {
 		return
 	}
 
-	fileName, dst, ext, err := fileUtils.SaveFile(file)
-	if err != nil {
-		log.Println("文件保存失败")
-		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "文件保存失败"})
-		return
-	}
-
-	err = logic.SaveFileInfo(uint(parentID), fileName, dst, ext)
+	err = logic.SaveFile(uint(parentID), file)
 	if err != nil {
 		log.Println("文件信息保存失败")
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "文件信息保存失败"})
@@ -112,9 +104,14 @@ func DownloadFile(ctx *gin.Context) {
 	}
 
 	path, fileName, err := logic.GetFileLocalPathAndFileName(uint(ID))
-	ctx.Header("Content-Type", "application/octet-stream")
-	ctx.Header("Content-Disposition", "attachment; filename="+fileName)
-	ctx.Header("Content-Transfer-Encoding", "binary")
-	ctx.File(path)
+	if err != nil {
+		log.Println("找不到文件")
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "找不到文件"})
+		return
+	}
 
+	//ctx.Header("Content-Type", "application/octet-stream")
+	//ctx.Header("Content-Disposition", "attachment; filename="+fileName)
+	//ctx.Header("Content-Transfer-Encoding", "binary")
+	ctx.FileAttachment(path, fileName)
 }

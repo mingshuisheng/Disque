@@ -2,6 +2,8 @@ package dao
 
 import (
 	"disqueBackend/models"
+	"strconv"
+	"strings"
 )
 
 func QueryFileList(parentID uint) ([]models.File, error) {
@@ -10,8 +12,19 @@ func QueryFileList(parentID uint) ([]models.File, error) {
 	return files, tx.Error
 }
 
-func InsertFile(file models.File) error {
-	tx := DB.Create(&file)
+func QueryAllChildrenByTreeID(treeID string) ([]models.File, error) {
+	var files []models.File
+	tx := DB.Where("tree_id like ?", treeID+"%").Find(&files)
+	return files, tx.Error
+}
+
+func InsertFile(file *models.File) error {
+	tx := DB.Create(file)
+	return tx.Error
+}
+
+func UpdateFile(file *models.File) error {
+	tx := DB.Save(file)
 	return tx.Error
 }
 
@@ -27,12 +40,26 @@ func QueryAllParentList(ID uint) ([]models.File, error) {
 	if err != nil {
 		return files, err
 	}
-	files = append(files, file)
-	for file.ParentID != 0 {
-		file, err = QueryFile(file.ParentID)
-		if err != nil {
-			return files, err
+
+	parents := strings.Split(file.TreeID, "-")
+
+	var parentIDList []uint
+
+	parentIDList = append(parentIDList, file.ID)
+
+	for _, str := range parents {
+		if str != "0" {
+			id, err := strconv.ParseUint(str, 10, 64)
+			if err != nil {
+				return files, err
+			}
+			parentIDList = append(parentIDList, uint(id))
 		}
+	}
+
+	tx := DB.Where("ID IN ?", parentIDList).Find(&files)
+	if tx.Error != nil {
+		return files, tx.Error
 	}
 
 	return files, nil
