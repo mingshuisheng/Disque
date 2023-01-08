@@ -25,6 +25,7 @@ declare module '@vue/runtime-core' {
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
     ElRow: typeof import('element-plus/es')['ElRow']
+    ElUpload: typeof import('element-plus/es')['ElUpload']
     FileBase: typeof import('./../components/FileComponents/FileBase.vue')['default']
     FileItem: typeof import('./../components/FileComponents/FileItem.vue')['default']
     Folder: typeof import('./../components/FileComponents/Folder.vue')['default']
@@ -39,6 +40,7 @@ declare module '@vue/runtime-core' {
     OnClickOutside: typeof import('@vueuse/components')['OnClickOutside']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StateFileItem: typeof import('./../components/businessComponents/StateFileItem.vue')['default']
     StateFolderItem: typeof import('./../components/businessComponents/StateFolderItem.vue')['default']
     UnknownFile: typeof import('./../components/FileComponents/UnknownFile.vue')['default']
   }
