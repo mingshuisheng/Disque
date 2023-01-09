@@ -19,9 +19,10 @@ func Init(mode string) *gin.Engine {
 	r.POST("/file/upload", controller.UploadFile)
 	r.GET("/file/download/:ID", controller.DownloadFile)
 	r.PUT("/file/rename", controller.RenameFile)
+	r.DELETE("/file/del/:ID", controller.DeleteFile)
 
 	r.NoRoute(func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusNotFound, gin.H{
 			"msg": 404,
 		})
 	})

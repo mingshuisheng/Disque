@@ -119,16 +119,6 @@ type RenameFileParams struct {
 }
 
 func RenameFile(ctx *gin.Context) {
-	//IDStr := ctx.Param("ID")
-	//ID, err := strconv.ParseUint(IDStr, 10, 64)
-	//if err != nil {
-	//	log.Println("缺少参数")
-	//	ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数不足"})
-	//	return
-	//}
-	//
-	//newFileName := ctx.Param("newFileName")
-
 	var params RenameFileParams
 
 	err := ctx.BindJSON(&params)
@@ -148,4 +138,23 @@ func RenameFile(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"msg": "重命名成功"})
+}
+
+func DeleteFile(ctx *gin.Context) {
+	IDStr := ctx.Param("ID")
+	ID, err := strconv.ParseUint(IDStr, 10, 64)
+	if err != nil {
+		log.Println("缺少参数")
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数不足"})
+		return
+	}
+
+	err = logic.DeleteFile(uint(ID))
+
+	if err != nil {
+		log.Println("文件删除失败")
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "文件删除失败"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"msg": "文件删除失败"})
 }

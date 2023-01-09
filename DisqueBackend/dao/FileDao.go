@@ -28,6 +28,11 @@ func UpdateFile(file *models.File) error {
 	return tx.Error
 }
 
+func DeleteFile(ID uint) error {
+	tx := DB.Delete(&models.File{}, ID)
+	return tx.Error
+}
+
 func QueryFile(ID uint) (models.File, error) {
 	var file models.File
 	tx := DB.Where("id = ?", ID).First(&file)

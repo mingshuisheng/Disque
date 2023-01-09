@@ -122,6 +122,10 @@ func RenameFile(ID uint, newFileName string) error {
 	return err
 }
 
+func DeleteFile(ID uint) error {
+	return dao.DeleteFile(ID)
+}
+
 func GetFileLocalPathAndFileName(ID uint) (path string, fileName string, err error) {
 	path = ""
 	fileName = ""

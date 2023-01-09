@@ -16,6 +16,8 @@ export const loadFileInfo = (ID: number) => handlerResult<FileData>(() => httpCl
 
 export const renameFile = (ID: number, newFileName: string) => handlerResult<ResponseMsg>(() => httpClient.put("/file/rename", {ID, NewFileName: newFileName}))
 
+export const deleteFile = (ID: number) => handlerResult<ResponseMsg>(() => httpClient.delete(`/file/del/${ID}`))
+
 export const uploadFile = (file: File, parentID: number) => {
   return handlerResult<{ msg: string }>(
     () => {

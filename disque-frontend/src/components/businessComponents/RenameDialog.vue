@@ -21,7 +21,7 @@ import { reloadFileState } from '../../states/fileState'
 import type { FileData } from '../../types'
 
 const {file} = $defineProps<{
-  file?: FileData
+  file: FileData
 }>()
 
 defineOptions({
@@ -35,7 +35,7 @@ const {showRenameDialog} = defineModel<{
 
 const ruleFormRef = ref<FormInstance>()
 const form = reactive({
-  fileName: file?.Name || ""
+  fileName: file.Name || ""
 })
 const rules = reactive<FormRules>({
   fileName: [{ required: true, message: '文件夹名称不能为空', trigger: 'blur' }]
@@ -45,10 +45,10 @@ const submitForm = async () => {
   if (!ruleFormRef.value) return
   try {
     await ruleFormRef.value.validate()
-    if(form.fileName.trim() === file?.Name){
+    if(form.fileName.trim() === file.Name){
       return
     }
-    await renameFile(file?.ID || 0, form.fileName.trim())
+    await renameFile(file.ID || 0, form.fileName.trim())
     // await handlerMakeDir()
     await reloadFileState()
     showRenameDialog.value = false
