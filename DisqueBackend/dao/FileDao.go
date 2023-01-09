@@ -14,7 +14,7 @@ func QueryFileList(parentID uint) ([]models.File, error) {
 
 func QueryAllChildrenByTreeID(treeID string) ([]models.File, error) {
 	var files []models.File
-	tx := DB.Where("tree_id like ?", treeID+"%").Find(&files)
+	tx := DB.Where("tree_id like ?", treeID+"-%").Find(&files)
 	return files, tx.Error
 }
 

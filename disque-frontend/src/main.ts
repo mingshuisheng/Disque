@@ -7,4 +7,4 @@ import "./index.scss"
 // import 'element-plus/dist/index.css'
 
 createApp(App).use(router).mount('#app')
-
+useTitle('Disque')

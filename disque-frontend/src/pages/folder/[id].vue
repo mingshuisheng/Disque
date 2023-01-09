@@ -68,23 +68,16 @@ const rules = reactive<FormRules>({
 const submitForm = async () => {
   if (!ruleFormRef.value) return
   try {
-    let valid = await ruleFormRef.value.validate()
-    if (!valid) {
-      return
-    }
-
+    await ruleFormRef.value.validate()
     await handlerMakeDir()
   } catch (err) {
-    console.log(err)
+    // console.log(err)
   }
 }
 
 const showNewFolder = ref(false)
 
 const handlerMakeDir = async () => {
-  if (form.fileName.trim() === '') {
-    return
-  }
   await makeDir(currentFile.value.ID, form.fileName)
   await reloadFileState()
   form.fileName = ''

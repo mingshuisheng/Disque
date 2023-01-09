@@ -18,6 +18,7 @@ func Init(mode string) *gin.Engine {
 	r.GET("/file/info/:ID", controller.FileInfo)
 	r.POST("/file/upload", controller.UploadFile)
 	r.GET("/file/download/:ID", controller.DownloadFile)
+	r.PUT("/file/rename", controller.RenameFile)
 
 	r.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{

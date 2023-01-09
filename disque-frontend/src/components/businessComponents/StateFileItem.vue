@@ -5,10 +5,12 @@
     </template>
     <template #menu>
       <context-menu-item @click="download">下载</context-menu-item>
-      <context-menu-item @click="rename">重命名</context-menu-item>
+      <context-menu-item @click="showRenameDialog = true">重命名</context-menu-item>
       <context-menu-item @click="del">删除</context-menu-item>
     </template>
   </file-item>
+
+  <rename-dialog $showRenameDialog='showRenameDialog' :file='file' ></rename-dialog>
 </template>
 
 <script setup lang='ts'>
@@ -22,6 +24,8 @@ defineOptions({
 const {file} = $defineProps<{
   file?: FileData
 }>()
+
+const showRenameDialog = ref(false)
 
 const download = () => DownloadFile.download(file)
 

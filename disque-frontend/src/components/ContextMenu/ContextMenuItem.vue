@@ -1,10 +1,12 @@
 <template>
-  <div @click="emits('click')" class="context-menu-item">
+  <div @click="onItemClick" class="context-menu-item">
     <slot></slot>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useContextShow } from './contextMenuState'
+
 defineOptions({
   name: "ContextMenuItem"
 })
@@ -12,6 +14,13 @@ defineOptions({
 const emits = defineEmits<SE<{
   click(): void
 }>>()
+
+const {setCurrentShow} = useContextShow()
+
+const onItemClick = () => {
+  emits('click')
+  setCurrentShow("")
+}
 
 </script>
 

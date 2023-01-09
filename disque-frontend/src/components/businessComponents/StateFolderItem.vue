@@ -1,14 +1,15 @@
 <template>
   <folder-item @click="openFolder">
     <template #default>
-      {{ file?.Name || "文件1" }}
+      {{ file?.Name || "[文件名错误]" }}
     </template>
     <template #menu>
       <context-menu-item @click="download">下载</context-menu-item>
-      <context-menu-item @click="rename">重命名</context-menu-item>
+      <context-menu-item @click="showRenameDialog = true">重命名</context-menu-item>
       <context-menu-item @click="del">删除</context-menu-item>
     </template>
   </folder-item>
+  <rename-dialog $showRenameDialog='showRenameDialog' :file='file' ></rename-dialog>
 </template>
 
 <script setup lang="ts">
@@ -25,23 +26,14 @@ const {file} = $defineProps<{
 
 let router = useRouter();
 
+const showRenameDialog = ref(false)
 
 const openFolder = () => router.push(`/folder/${file?.ID}`)
 
 const download = () => DownloadFile.download(file)
 
-
-const rename = () => {
-
-}
-
 const del = () => {
 
 }
 
-
 </script>
-
-<style scoped lang="scss">
-
-</style>

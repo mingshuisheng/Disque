@@ -2,13 +2,13 @@ import {onScopeDispose} from "@vue/runtime-core";
 
 const currentShowId = ref('')
 
-export const useContextShow = (onIdChange: (newId: string) => void) => {
+export const useContextShow = (onIdChange?: (newId: string) => void) => {
 
   useEventListener(window, "contextmenu", () => {
     currentShowId.value = ""
   })
 
-  const stop = watch(currentShowId, onIdChange)
+  const stop = watch(currentShowId, newId => onIdChange?.(newId))
   onScopeDispose(stop)
 
   return {

@@ -110,8 +110,42 @@ func DownloadFile(ctx *gin.Context) {
 		return
 	}
 
-	//ctx.Header("Content-Type", "application/octet-stream")
-	//ctx.Header("Content-Disposition", "attachment; filename="+fileName)
-	//ctx.Header("Content-Transfer-Encoding", "binary")
 	ctx.FileAttachment(path, fileName)
+}
+
+type RenameFileParams struct {
+	ID          uint   `json:"ID"`
+	NewFileName string `json:"NewFileName"`
+}
+
+func RenameFile(ctx *gin.Context) {
+	//IDStr := ctx.Param("ID")
+	//ID, err := strconv.ParseUint(IDStr, 10, 64)
+	//if err != nil {
+	//	log.Println("缺少参数")
+	//	ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数不足"})
+	//	return
+	//}
+	//
+	//newFileName := ctx.Param("newFileName")
+
+	var params RenameFileParams
+
+	err := ctx.BindJSON(&params)
+
+	if err != nil || params.ID == 0 || params.NewFileName == "" {
+		log.Println("缺少参数")
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数不足"})
+		return
+	}
+
+	err = logic.RenameFile(params.ID, params.NewFileName)
+
+	if err != nil {
+		log.Println("文件不存在")
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "文件不存在"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"msg": "重命名成功"})
 }

@@ -110,6 +110,18 @@ func SaveFile(parentID uint, file *multipart.FileHeader) (err error) {
 	return err
 }
 
+func RenameFile(ID uint, newFileName string) error {
+	fileInfo, err := GetFileInfo(ID)
+
+	if err != nil {
+		return err
+	}
+
+	fileInfo.Name = newFileName
+	err = dao.UpdateFile(&fileInfo)
+	return err
+}
+
 func GetFileLocalPathAndFileName(ID uint) (path string, fileName string, err error) {
 	path = ""
 	fileName = ""
@@ -144,6 +156,8 @@ func toZipFile(file models.File) (path string, err error) {
 	if err != nil {
 		return
 	}
+
+	files = append(files, file)
 
 	root := buildTree(file.ID, files)
 
@@ -213,6 +227,9 @@ func buildTree(rootID uint, files []models.File) *TreeNode {
 	for _, file := range files {
 		if file.ID != rootID {
 			current := m[file.ParentID]
+			if current.Children == nil {
+				current.Children = make([]*TreeNode, 0)
+			}
 			current.Children = append(current.Children, m[file.ID])
 		}
 	}

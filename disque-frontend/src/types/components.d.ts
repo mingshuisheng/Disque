@@ -38,6 +38,7 @@ declare module '@vue/runtime-core' {
     IIcBaseline123: typeof import('~icons/ic/baseline123')['default']
     IMaterialSymbols10kOutline: typeof import('~icons/material-symbols/10k-outline')['default']
     OnClickOutside: typeof import('@vueuse/components')['OnClickOutside']
+    RenameDialog: typeof import('./../components/businessComponents/RenameDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StateFileItem: typeof import('./../components/businessComponents/StateFileItem.vue')['default']
