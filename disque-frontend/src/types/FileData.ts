@@ -11,4 +11,6 @@ export interface FileData {
   ParentID: number
 
   IsDir: boolean
+
+  ExtType: string
 }

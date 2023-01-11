@@ -28,7 +28,6 @@ declare global {
   const eagerComputed: typeof import('@vueuse/core')['eagerComputed']
   const effectScope: typeof import('vue')['effectScope']
   const extendRef: typeof import('@vueuse/core')['extendRef']
-  const folderIcon: typeof import('@/assets')['folderIcon']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
   const h: typeof import('vue')['h']
@@ -42,7 +41,6 @@ declare global {
   const isRef: typeof import('vue')['isRef']
   const makeDestructurable: typeof import('@vueuse/core')['makeDestructurable']
   const markRaw: typeof import('vue')['markRaw']
-  const moonIcon: typeof import('@/assets')['moonIcon']
   const nextTick: typeof import('vue')['nextTick']
   const onActivated: typeof import('vue')['onActivated']
   const onBeforeMount: typeof import('vue')['onBeforeMount']
@@ -85,7 +83,6 @@ declare global {
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
-  const sunIcon: typeof import('@/assets')['sunIcon']
   const syncRef: typeof import('@vueuse/core')['syncRef']
   const syncRefs: typeof import('@vueuse/core')['syncRefs']
   const templateRef: typeof import('@vueuse/core')['templateRef']
@@ -102,7 +99,6 @@ declare global {
   const tryOnMounted: typeof import('@vueuse/core')['tryOnMounted']
   const tryOnScopeDispose: typeof import('@vueuse/core')['tryOnScopeDispose']
   const tryOnUnmounted: typeof import('@vueuse/core')['tryOnUnmounted']
-  const unKnownIcon: typeof import('@/assets')['unKnownIcon']
   const unref: typeof import('vue')['unref']
   const unrefElement: typeof import('@vueuse/core')['unrefElement']
   const until: typeof import('@vueuse/core')['until']
@@ -304,7 +300,6 @@ declare module 'vue' {
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
-    readonly folderIcon: UnwrapRef<typeof import('@/assets')['folderIcon']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
@@ -318,7 +313,6 @@ declare module 'vue' {
     readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
     readonly makeDestructurable: UnwrapRef<typeof import('@vueuse/core')['makeDestructurable']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
-    readonly moonIcon: UnwrapRef<typeof import('@/assets')['moonIcon']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
@@ -361,7 +355,6 @@ declare module 'vue' {
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
-    readonly sunIcon: UnwrapRef<typeof import('@/assets')['sunIcon']>
     readonly syncRef: UnwrapRef<typeof import('@vueuse/core')['syncRef']>
     readonly syncRefs: UnwrapRef<typeof import('@vueuse/core')['syncRefs']>
     readonly templateRef: UnwrapRef<typeof import('@vueuse/core')['templateRef']>
@@ -378,7 +371,6 @@ declare module 'vue' {
     readonly tryOnMounted: UnwrapRef<typeof import('@vueuse/core')['tryOnMounted']>
     readonly tryOnScopeDispose: UnwrapRef<typeof import('@vueuse/core')['tryOnScopeDispose']>
     readonly tryOnUnmounted: UnwrapRef<typeof import('@vueuse/core')['tryOnUnmounted']>
-    readonly unKnownIcon: UnwrapRef<typeof import('@/assets')['unKnownIcon']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly unrefElement: UnwrapRef<typeof import('@vueuse/core')['unrefElement']>
     readonly until: UnwrapRef<typeof import('@vueuse/core')['until']>

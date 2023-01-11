@@ -49,9 +49,8 @@ const submitForm = async () => {
       return
     }
     await renameFile(file.ID || 0, form.fileName.trim())
-    // await handlerMakeDir()
-    await reloadFileState()
     showRenameDialog.value = false
+    await reloadFileState()
   } catch (err) {
     // console.log(err)
   }

@@ -15,7 +15,7 @@
       </el-row>
     </el-header>
     <el-main>
-      <div class='file-list'>
+      <div v-auto-animate class='file-list'>
         <template v-for='file in fileState' :key='file.ID'>
           <state-folder-item v-if='file.IsDir' :file='file' />
           <state-file-item v-if='!file.IsDir' :file='file' />

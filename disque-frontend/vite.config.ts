@@ -43,7 +43,6 @@ export default defineConfig({
         'vue',
         VueRouterAutoImports,
         {'vue-router/auto': ['useLink']},
-        {'@/assets': ['sunIcon', 'unKnownIcon', 'folderIcon', 'moonIcon']},
         '@vueuse/core',
       ],
       defaultExportByFilename: false,
