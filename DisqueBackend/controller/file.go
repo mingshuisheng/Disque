@@ -158,3 +158,7 @@ func DeleteFile(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"msg": "文件删除失败"})
 }
+
+func LoadImageUrl(ctx *gin.Context) {
+	DownloadFile(ctx)
+}

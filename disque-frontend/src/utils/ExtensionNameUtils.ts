@@ -1,23 +1,29 @@
 export namespace ExtensionNameUtils {
 
-  const fileTypeList = [
+  export type FileType = 'image' | 'txt' | 'excel' | 'word' | 'pdf' | 'ppt' | 'video' | 'radio' | ''
+  export type FileTypeItem = {
+    typeName: FileType,
+    types: string[]
+  }
+
+  const fileTypeList: FileTypeItem[] = [
     // 图片类型
-    {'typeName': 'image', 'types': ['png', 'jpg', 'jpeg', 'bmp', 'gif']},
+    { typeName: 'image', types: ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'svg', 'ico'] },
     // 文本类型
-    {'typeName': 'txt', 'types': ['txt']},
+    { typeName: 'txt', types: ['txt'] },
     // excel类型
-    {'typeName': 'excel', 'types': ['xls', 'xlsx']},
-    {'typeName': 'word', 'types': ['doc', 'docx']},
-    {'typeName': 'pdf', 'types': ['pdf']},
-    {'typeName': 'ppt', 'types': ['ppt']},
+    { typeName: 'excel', types: ['xls', 'xlsx'] },
+    { typeName: 'word', types: ['doc', 'docx'] },
+    { typeName: 'pdf', types: ['pdf'] },
+    { typeName: 'ppt', types: ['ppt'] },
     // 视频类型
-    {'typeName': 'video', 'types': ['mp4', 'm2v', 'mkv']},
+    { typeName: 'video', types: ['mp4', 'm2v', 'mkv'] },
     // 音频
-    {'typeName': 'radio', 'types': ['mp3', 'wav', 'wmv']}
+    { typeName: 'radio', types: ['mp3', 'wav', 'wmv'] }
   ]
 
-  export function getFileTypeByExtension(ext: string): string {
-    if(ext === ''){
+  export function getFileTypeByExtension(ext: string): FileType {
+    if (ext === '') {
       return ''
     }
 
@@ -25,9 +31,9 @@ export namespace ExtensionNameUtils {
       const fileTypeItem = fileTypeList[i]
       const typeName = fileTypeItem.typeName
       const types = fileTypeItem.types
-      const result = types.some(function (item) {
-        return item === ext;
-      });
+      const result = types.some(function(item) {
+        return item === ext
+      })
       if (result) {
         return typeName
       }

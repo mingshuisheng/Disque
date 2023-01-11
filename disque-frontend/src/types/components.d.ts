@@ -49,4 +49,7 @@ declare module '@vue/runtime-core' {
     StateFolderItem: typeof import('./../components/businessComponents/StateFolderItem.vue')['default']
     UnknownFile: typeof import('./../components/FileComponents/UnknownFile.vue')['default']
   }
+  export interface ComponentCustomProperties {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
+  }
 }

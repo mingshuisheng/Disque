@@ -8,12 +8,14 @@
 </template>
 
 <script setup lang="ts">
+import type { Component } from '@vue/runtime-core'
+
 defineOptions({
   name: "FileBase"
 })
 
 const {icon} = $defineProps<{
-  icon: string,
+  icon: string | Component,
 }>()
 
 const emits = defineEmits<SE<{

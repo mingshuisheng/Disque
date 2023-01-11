@@ -14,6 +14,7 @@ const currentFile = ref<FileData>({
   Name: "",
   ParentID: 0,
   IsDir: true,
+  ExtType: '',
   CreatedAt: new Date(),
   UpdatedAt: new Date(),
   DeletedAt: new Date()
@@ -34,6 +35,7 @@ const loadNewFile = async (id: number) => {
 }
 
 export {
+  isLoading,
   currentFile,
   fileParents,
   fileState,

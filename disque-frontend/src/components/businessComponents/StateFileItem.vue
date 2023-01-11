@@ -20,6 +20,8 @@ import { DownloadFile } from '../../utils/DownloadFile'
 import { deleteFileForComponent } from './utils'
 import { extIconMap } from '../../assets'
 import { ExtensionNameUtils } from '../../utils/ExtensionNameUtils'
+import type { WatchStopHandle } from '@vue/runtime-core'
+import { coverURL } from '../../api/axios'
 
 defineOptions({
   name: 'StateFileItem'
@@ -33,18 +35,34 @@ const showRenameDialog = ref(false)
 
 const download = () => DownloadFile.download(file)
 
-const icon = computed<string>((): string => {
-  if (extIconMap.has(file.ExtType)) {
-    return extIconMap.get(file.ExtType) || ''
+const icon = ref('')
+
+const reloadIcon = () => {
+  const fileType = ExtensionNameUtils.getFileTypeByExtension(file.ExtType)
+
+  if (fileType === 'image') {
+    try {
+      // let value = await loadImageUrl(file.ID)
+      // console.log("url", value)
+      icon.value = coverURL(`/file/accessUrl/${file.ID}`)
+      return
+    } catch {
+      console.warn('load image error')
+    }
   }
 
-  const typeName = ExtensionNameUtils.getFileTypeByExtension(file.ExtType)
-  if (extIconMap.has(typeName)) {
-    return extIconMap.get(typeName) || ''
-  }
+  icon.value = extIconMap.get(file.ExtType) || extIconMap.get(fileType) || ''
+}
 
-  return ''
+let stop: WatchStopHandle
+
+onMounted(() => {
+  reloadIcon()
+  stop = watch(() => file.ExtType, reloadIcon)
 })
+
+onUnmounted(() => stop?.())
+
 
 </script>
 

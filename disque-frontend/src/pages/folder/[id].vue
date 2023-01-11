@@ -1,5 +1,5 @@
 <template>
-  <el-container class='folder-root'>
+  <el-container v-loading='isLoading' class='folder-root'>
     <el-header class='folder-header'>
       <el-breadcrumb separator='/'>
         <el-breadcrumb-item :to="{ path: '/folder/0' }">文件</el-breadcrumb-item>
@@ -45,7 +45,7 @@ import {
   currentFile,
   fileParents,
   fileState,
-  initFileState,
+  initFileState, isLoading,
   loadNewFile,
   reloadFileState
 } from '../../states/fileState'
