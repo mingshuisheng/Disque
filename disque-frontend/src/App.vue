@@ -12,7 +12,7 @@ const items = ref<MenuItem[]>([
     text: '文件',
     onClick: () => {
       if(!route.path.startsWith('/folder')){
-        router.push('/folder/1')
+        router.push('/folder/0')
       }
     }
   },

@@ -9,17 +9,23 @@
       </el-breadcrumb>
       <el-row>
         <el-button @click='showNewFolder = true' type='primary'>新建文件夹</el-button>
-        <el-upload :before-upload="handlerUploadFile" :show-file-list="false" class='file-upload-btn'>
+        <el-upload :before-upload='handlerUploadFile' :show-file-list='false' class='file-upload-btn'>
           <el-button type='danger'>上传文件</el-button>
         </el-upload>
       </el-row>
     </el-header>
-    <el-main>
+    <el-main class='file-list-main' ref='dropZoneRef'>
       <div v-auto-animate class='file-list'>
         <template v-for='file in fileState' :key='file.ID'>
           <state-folder-item v-if='file.IsDir' :file='file' />
           <state-file-item v-if='!file.IsDir' :file='file' />
         </template>
+      </div>
+      <div :class='{"drag-upload-area": true, "is-over-drag": isOverDropZone}' v-if='isGlobalOverDropZone || isOverDropZone'>
+        <div class='upload-contain'>
+          <i-ep-upload-filled class='upload-icon' />
+          <div class='upload-tips'>文件拖拽到此处</div>
+        </div>
       </div>
     </el-main>
   </el-container>
@@ -51,6 +57,9 @@ import {
 } from '../../states/fileState'
 import { makeDir, uploadFile } from '../../api'
 import type { FormInstance, FormRules, UploadRawFile } from 'element-plus'
+import { addUploadTask, addUploadTaskDir } from '../../states/uploadState'
+import { useDropArea } from '../../composables'
+import { FileUtils } from '../../utils/FileUtils'
 
 defineOptions({
   name: 'FolderPage'
@@ -84,19 +93,36 @@ const handlerMakeDir = async () => {
   showNewFolder.value = false
 }
 
-const handlerUploadFile = async (rawFile: UploadRawFile) => {
-  console.log("rawFile:", rawFile)
-  await uploadFile(rawFile, currentFile?.value?.ID)
-  await reloadFileState()
-  return Promise.reject()
+const handlerUploadFile = (rawFile: UploadRawFile) => {
+  addUploadTask(rawFile)
+  return false
 }
 
 
-watch(() => route.params.id, () => loadNewFile(route.params.id))
+watch(() => (route.params as any).id, () => loadNewFile((route.params as any).id))
+onMounted(() => loadNewFile((route.params as any).id))
 
-onMounted(initFileState)
 
-const fileId = route.params.id
+
+const dropZoneRef = ref<HTMLElement>()
+
+const { isOverDropZone, isGlobalOverDropZone } = useDropArea(dropZoneRef, async event => {
+  let results = await FileUtils.flatDataTransferItems(event.dataTransfer?.items)
+  for (let i = 0; i < results.length; i++) {
+    console.log(`lines ${i}:`, results[i].name)
+    if(results[i].isFile){
+      addUploadTask(results[i].data[0].file)
+      console.log("\t|---", results[i].data[0].path)
+    }else {
+      addUploadTaskDir(results[i].data.map(item => item.file), results[i].name)
+      for (let j = 0; j < results[i].data.length; j++) {
+        console.log("\t|---", results[i].data[j].path)
+      }
+    }
+  }
+})
+
+
 </script>
 
 <style scoped lang='scss'>
@@ -108,17 +134,67 @@ const fileId = route.params.id
     display: flex;
     align-items: center;
     justify-content: space-between;
-    .file-upload-btn{
+
+    .file-upload-btn {
       margin-left: 12px;
     }
   }
 
-  .file-list {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-    //height: 100%;
-    gap: 30px;
+  .file-list-main {
+    position: relative;
+
+    .file-list {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+      //height: 100%;
+      gap: 30px;
+    }
+
+    .drag-upload-area {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--el-fill-color-blank);
+
+      border: 1px dashed var(--el-border-color);
+      opacity: 0.5;
+
+      &.is-over-drag {
+        border: 2px dashed var(--el-color-primary);
+        background-color: var(--el-color-primary-light-9);
+      }
+
+      &:hover {
+        border-color: var(--el-color-primary);
+      }
+
+      .upload-contain {
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        .upload-icon {
+          $size: 100px;
+          width: $size;
+          height: $size;
+        }
+
+
+        .upload-tips {
+          font-size: 20px;
+        }
+      }
+    }
+
   }
 }
 

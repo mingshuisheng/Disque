@@ -20,7 +20,7 @@ const currentFile = ref<FileData>({
   DeletedAt: new Date()
 })
 
-const initFileState = () => execute(0, {id: 0})
+// const initFileState = () => execute(0, {id: currentFile.value.ID})
 
 const reloadFileState = () => execute(0, {id: currentFile.value.ID})
 
@@ -39,7 +39,7 @@ export {
   currentFile,
   fileParents,
   fileState,
-  initFileState,
+  // initFileState,
   reloadFileState,
   loadNewFile
 }

@@ -43,6 +43,7 @@ declare module '@vue/runtime-core' {
     IEpCaretRight: typeof import('~icons/ep/caret-right')['default']
     IEpCircleClose: typeof import('~icons/ep/circle-close')['default']
     IEpMaterialSymbols10k: typeof import('~icons/ep/material-symbols10k')['default']
+    IEpUploadFilled: typeof import('~icons/ep/upload-filled')['default']
     IEpVideoPause: typeof import('~icons/ep/video-pause')['default']
     IEpVideoPlay: typeof import('~icons/ep/video-play')['default']
     IIcBaseline10k: typeof import('~icons/ic/baseline10k')['default']

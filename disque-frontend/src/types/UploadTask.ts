@@ -1,5 +1,6 @@
 export interface UploadTask {
-  file: File[] | null
+  id: number
+  files: File[] | null
   name: string
   uploadState: 'wait' | 'uploading' | 'pause' | 'done'
   precentage: number

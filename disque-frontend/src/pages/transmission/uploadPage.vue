@@ -17,8 +17,8 @@
 
 <script setup lang='ts'>
 import { VideoPlay, CircleClose, VideoPause } from '@element-plus/icons-vue'
-import type { UploadTask } from '../../types/UploadTask'
 import UploadTaskTable from '../../components/uploadPage/UploadTaskTable.vue'
+import { uploadTasks } from '../../states/uploadState'
 
 defineOptions({
   name: 'UploadPage'
@@ -26,29 +26,7 @@ defineOptions({
 
 const totalPercent = ref(60)
 
-const tableData: UploadTask[] = [
-  {
-    file: null,
-    name: 'k3s',
-    precentage: 10,
-    uploadState: 'uploading',
-    completedQuantity: 0
-  },
-  {
-    file: null,
-    name: 'abcd',
-    precentage: 60,
-    uploadState: 'uploading',
-    completedQuantity: 0
-  },
-  {
-    file: null,
-    name: '123',
-    precentage: 50,
-    uploadState: 'uploading',
-    completedQuantity: 0
-  }
-]
+const tableData = uploadTasks
 
 </script>
 

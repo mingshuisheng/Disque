@@ -40,4 +40,17 @@ export namespace ExtensionNameUtils {
     }
     return ''
   }
+
+  export function getExtensionByName(fileName: string): string{
+    if(!fileName.includes(".")){
+      return ""
+    }
+
+    return fileName.substring(fileName.lastIndexOf(".") + 1)
+  }
+
+  export function getExtensionByFile(file: File): string{
+    return getExtensionByName(file.name)
+  }
+
 }
