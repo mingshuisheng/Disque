@@ -1,14 +1,15 @@
+import type { LocalFileInfo } from '../types/LocalFile'
+
 export namespace FileUtils {
 
-  export type DataTransferItem = {
-    file: File
-    path: string
+  export const isUploadFileObject = (file: object): file is LocalFileInfo => {
+    return Object.hasOwn(file, 'file')
   }
 
   export type DataTransferResult = {
     name: string
     isFile: boolean
-    data: DataTransferItem[]
+    data: LocalFileInfo[]
   }
 
   export async function flatDataTransferItems(items?: DataTransferItemList): Promise<DataTransferResult[]> {
@@ -23,7 +24,7 @@ export namespace FileUtils {
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
       if (item.kind === 'file') {
-        const resultList: DataTransferItem[] = []
+        const resultList: LocalFileInfo[] = []
         let entry = item.webkitGetAsEntry()
         if (!entry) {
           continue
@@ -45,12 +46,12 @@ export namespace FileUtils {
     return result
   }
 
-  function getFileFromEntryRecursively(entry: FileSystemEntry, resultList: DataTransferItem[]): Promise<void> {
+  function getFileFromEntryRecursively(entry: FileSystemEntry, resultList: LocalFileInfo[]): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (entry.isFile) {
         (entry as FileSystemFileEntry).file(
           file => {
-            resultList.push({ file, path: entry.fullPath })
+            resultList.push({ file, fullPath: entry.fullPath })
             resolve()
           },
           e => {

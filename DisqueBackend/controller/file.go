@@ -3,6 +3,7 @@ package controller
 import (
 	"disqueBackend/logic"
 	"disqueBackend/models"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -51,9 +52,14 @@ func MakeDir(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"msg": 404})
 		return
 	}
-	err = logic.MakeDir(uint(param.ParentID), param.Name)
+	_, err = logic.MakeDir(uint(param.ParentID), param.Name)
+
+	if errors.Is(err, nil) {
+
+	}
+
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": 500})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"msg": 200})
@@ -83,8 +89,9 @@ func UploadFile(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "参数不足"})
 		return
 	}
+	fullPath := ctx.DefaultPostForm("fullPath", "")
 
-	err = logic.SaveFile(uint(parentID), file)
+	err = logic.SaveFile(uint(parentID), file, fullPath)
 	if err != nil {
 		log.Println("文件信息保存失败")
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "文件信息保存失败"})

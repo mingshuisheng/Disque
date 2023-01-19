@@ -5,7 +5,6 @@ export interface FileData {
 
   UpdatedAt: Date
 
-  DeletedAt: Date
   Name: string
 
   ParentID: number

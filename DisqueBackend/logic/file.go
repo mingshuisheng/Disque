@@ -5,7 +5,7 @@ import (
 	"disqueBackend/models"
 	"disqueBackend/utils/fileUtils"
 	"disqueBackend/utils/zipUtils"
-	"errors"
+	"emperror.dev/errors"
 	"github.com/google/uuid"
 	cp "github.com/otiai10/copy"
 	"mime/multipart"
@@ -22,28 +22,57 @@ func GetFileList(parentID uint) []models.File {
 	return fileList
 }
 
-func MakeDir(parentID uint, name string) error {
+func MakeDir(parentID uint, name string) (models.File, error) {
 	treeID := "0"
 	if parentID != 0 {
 		info, err := GetFileInfo(parentID)
 		if err != nil {
-			return err
+			return models.File{}, errors.Combine(err, &ParentFileNotExitError{}) //errors.Wrapf(err, "找不到文件夹")
 		}
 		treeID = info.TreeID
 	}
 
-	newDir := models.File{ParentID: parentID, Name: name, IsDir: true}
-	err := dao.InsertFile(&newDir)
+	oldFile, err := dao.QueryFileByParentIDAndName(parentID, name)
+
 	if err != nil {
-		return err
+		return models.File{}, errors.Wrapf(err, "数据库错误")
+	}
+
+	if oldFile.ID != 0 {
+		return oldFile, nil
+	}
+
+	newDir := models.File{ParentID: parentID, Name: name, IsDir: true}
+	err = dao.InsertFile(&newDir)
+	if err != nil {
+		return models.File{}, errors.Combine(err, &FolderCreateError{})
 	}
 	newDir.TreeID = treeID + "-" + strconv.Itoa(int(newDir.ID))
 	err = dao.UpdateFile(&newDir)
 
 	if err != nil {
-		return err
+		return models.File{}, errors.Combine(err, &FolderCreateError{})
 	}
-	return nil
+	return newDir, nil
+}
+
+func MakeAllDir(parentID uint, path string) (models.File, error) {
+	folderNames := strings.Split(path, "/")
+	var lastFile models.File
+	var err error
+
+	for _, folderName := range folderNames {
+		if folderName == "" {
+			continue
+		}
+
+		lastFile, err = MakeDir(parentID, folderName)
+		if err != nil {
+			return models.File{}, errors.Wrapf(err, "创建文件夹%s失败", folderName)
+		}
+		parentID = lastFile.ID
+	}
+	return lastFile, nil
 }
 
 func GetAllParentFileList(ID uint) []models.File {
@@ -59,26 +88,31 @@ func GetFileInfo(ID uint) (models.File, error) {
 	return dao.QueryFile(ID)
 }
 
-func SaveFile(parentID uint, file *multipart.FileHeader) (err error) {
+func SaveFile(parentID uint, file *multipart.FileHeader, fullPath string) (err error) {
 
+	//将文件保存到本地
 	fileName, dst, ext, err := fileUtils.SaveFile(file)
 	if err != nil {
-		//log.Println("文件保存失败")
-		//ctx.JSON(http.StatusBadRequest, gin.H{"msg": "文件保存失败"})
-		return
+		return errors.Wrapf(err, "文件保存失败")
 	}
 
-	treeID := "0"
-	//校验parentID是否有效
-	if parentID != 0 {
-		info, err := GetFileInfo(parentID)
-		if err != nil || info.ID == 0 || info.IsDir == false {
-			err = errors.New("正在操作的文件不存在")
-			return err
+	//查看是否需要创建文件夹，并且重置父文件夹id
+	if fullPath != "" {
+		start := 0
+		if strings.Index(fullPath, "/") == 0 {
+			start = 1
 		}
-		treeID = info.TreeID
+		fullPath = fullPath[start:strings.LastIndex(fullPath, "/"+file.Filename)]
+		if fullPath != "" {
+			dir, err := MakeAllDir(parentID, fullPath)
+			if err != nil {
+				return errors.Combine(err)
+			}
+			parentID = dir.ID
+		}
 	}
 
+	//本地文件映射
 	localFileInfo := models.LocalFile{
 		LocalPath: dst,
 	}
@@ -89,41 +123,63 @@ func SaveFile(parentID uint, file *multipart.FileHeader) (err error) {
 		return err
 	}
 
-	fileInfo := models.File{
-		Name:        fileName,
-		ParentID:    parentID,
-		IsDir:       false,
-		LocalFileID: localFileInfo.ID,
-		ExtType:     ext,
-	}
-
-	err = dao.InsertFile(&fileInfo)
-
+	oldFile, err := dao.QueryFileByParentIDAndName(parentID, file.Filename)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "文件保存失败")
 	}
 
-	fileInfo.TreeID = treeID + "-" + strconv.Itoa(int(fileInfo.ID))
+	if oldFile.ID != 0 {
+		//更新
+		oldFile.LocalFileID = localFileInfo.ID
+		err = dao.UpdateFile(&oldFile)
+	} else {
+		//创建
+		fileInfo := models.File{
+			Name:        fileName,
+			ParentID:    parentID,
+			IsDir:       false,
+			LocalFileID: localFileInfo.ID,
+			ExtType:     ext,
+		}
+		err = dao.InsertFile(&fileInfo)
 
-	err = dao.UpdateFile(&fileInfo)
+		if err != nil {
+			return errors.Wrapf(err, "文件保存失败")
+		}
 
-	return err
+		//计算新的TreeId
+		treeID := "0"
+		//校验parentID是否有效
+		if parentID != 0 {
+			info, err := GetFileInfo(parentID)
+			if err != nil || info.ID == 0 || info.IsDir == false {
+				return errors.Combine(err, &ParentFileNotExitError{})
+			}
+			treeID = info.TreeID
+		}
+
+		fileInfo.TreeID = treeID + "-" + strconv.Itoa(int(fileInfo.ID))
+
+		err = dao.UpdateFile(&fileInfo)
+	}
+
+	return errors.Wrapf(err, "文件保存失败")
 }
 
 func RenameFile(ID uint, newFileName string) error {
 	fileInfo, err := GetFileInfo(ID)
 
 	if err != nil {
-		return err
+		return errors.Combine(err, &FileNotExitError{})
 	}
 
 	fileInfo.Name = newFileName
 	err = dao.UpdateFile(&fileInfo)
-	return err
+	return errors.Wrapf(err, "重命名失败")
 }
 
 func DeleteFile(ID uint) error {
-	return dao.DeleteFile(ID)
+	return errors.Wrapf(dao.DeleteFile(ID), "文件删除失败")
 }
 
 func GetFileLocalPathAndFileName(ID uint) (path string, fileName string, err error) {
@@ -131,17 +187,20 @@ func GetFileLocalPathAndFileName(ID uint) (path string, fileName string, err err
 	fileName = ""
 	file, err := dao.QueryFile(ID)
 	if err != nil {
+		err = errors.Combine(err, &FileNotExitError{})
 		return
 	}
 
 	if file.IsDir {
 		fileName = file.Name + ".zip"
 		path, err = toZipFile(file)
+		err = errors.Wrapf(err, "zip文件创建失败")
 		return
 	}
 
 	fileName = file.Name
 	path, err = getSingleFile(file.LocalFileID)
+	err = errors.Wrapf(err, "文件实体丢失")
 	return
 }
 

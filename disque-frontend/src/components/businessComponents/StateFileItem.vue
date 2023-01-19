@@ -44,7 +44,7 @@ const reloadIcon = () => {
     try {
       // let value = await loadImageUrl(file.ID)
       // console.log("url", value)
-      icon.value = coverURL(`/file/accessUrl/${file.ID}`)
+      icon.value = coverURL(`/file/accessUrl/${file.ID}?rand=${new Date().getTime()}`)
       return
     } catch {
       console.warn('load image error')
@@ -58,7 +58,7 @@ let stop: WatchStopHandle
 
 onMounted(() => {
   reloadIcon()
-  stop = watch(() => file.ExtType, reloadIcon)
+  stop = watch(() => [file.ExtType, file.UpdatedAt], reloadIcon)
 })
 
 onUnmounted(() => stop?.())

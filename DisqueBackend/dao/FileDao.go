@@ -12,6 +12,12 @@ func QueryFileList(parentID uint) ([]models.File, error) {
 	return files, tx.Error
 }
 
+func QueryFileByParentIDAndName(parentID uint, fileName string) (models.File, error) {
+	var file models.File
+	tx := DB.Where("parent_id = ?", parentID).Where("name = ?", fileName).Find(&file)
+	return file, tx.Error
+}
+
 func QueryAllChildrenByTreeID(treeID string) ([]models.File, error) {
 	var files []models.File
 	tx := DB.Where("tree_id like ?", treeID+"-%").Find(&files)

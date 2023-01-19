@@ -1,11 +1,7 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
-
 type File struct {
-	gorm.Model
+	Model
 	Name        string
 	ParentID    uint `gorm:"index"`
 	IsDir       bool
@@ -15,6 +11,6 @@ type File struct {
 }
 
 type LocalFile struct {
-	gorm.Model
+	Model
 	LocalPath string
 }

@@ -1,6 +1,10 @@
+import type { LocalFileInfo } from './LocalFile'
+
+export type UploadFileItem = File | LocalFileInfo | null
+
 export interface UploadTask {
   id: number
-  files: File[] | null
+  files: UploadFileItem[]
   name: string
   uploadState: 'wait' | 'uploading' | 'pause' | 'done'
   precentage: number

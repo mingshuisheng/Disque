@@ -51,11 +51,11 @@ import {
   currentFile,
   fileParents,
   fileState,
-  initFileState, isLoading,
+  isLoading,
   loadNewFile,
   reloadFileState
 } from '../../states/fileState'
-import { makeDir, uploadFile } from '../../api'
+import { makeDir } from '../../api'
 import type { FormInstance, FormRules, UploadRawFile } from 'element-plus'
 import { addUploadTask, addUploadTaskDir } from '../../states/uploadState'
 import { useDropArea } from '../../composables'
@@ -109,15 +109,10 @@ const dropZoneRef = ref<HTMLElement>()
 const { isOverDropZone, isGlobalOverDropZone } = useDropArea(dropZoneRef, async event => {
   let results = await FileUtils.flatDataTransferItems(event.dataTransfer?.items)
   for (let i = 0; i < results.length; i++) {
-    console.log(`lines ${i}:`, results[i].name)
     if(results[i].isFile){
       addUploadTask(results[i].data[0].file)
-      console.log("\t|---", results[i].data[0].path)
     }else {
-      addUploadTaskDir(results[i].data.map(item => item.file), results[i].name)
-      for (let j = 0; j < results[i].data.length; j++) {
-        console.log("\t|---", results[i].data[j].path)
-      }
+      addUploadTaskDir(results[i].data, results[i].name)
     }
   }
 })
