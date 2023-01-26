@@ -1,5 +1,5 @@
 <template>
-  <div @contextmenu="contextMenu">
+  <div @contextmenu="contextMenu" class='context-menu-root'>
     <slot></slot>
   </div>
   <teleport to="body">
@@ -47,6 +47,9 @@ const contextMenu = (event: MouseEvent) => {
 </script>
 
 <style scoped lang="scss">
+.context-menu-root{
+  //-webkit-user-drag: none;
+}
 .context-menu-content-root {
   position: absolute;
   top: v-bind(y);

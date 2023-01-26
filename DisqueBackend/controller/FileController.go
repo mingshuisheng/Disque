@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"disqueBackend/logic"
 	"disqueBackend/models"
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
@@ -22,7 +21,7 @@ func FileInfo(ctx *gin.Context) {
 		return
 	}
 
-	file, err := logic.GetFileInfo(uint(ID))
+	file, err := getFileService(ctx).GetFileInfo(uint(ID))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, models.File{})
 		return
@@ -36,7 +35,7 @@ func ListFile(ctx *gin.Context) {
 	if err != nil {
 		parentID = 0
 	}
-	files := logic.GetFileList(uint(parentID))
+	files, _ := getFileService(ctx).GetFileList(uint(parentID))
 	ctx.JSON(http.StatusOK, files)
 }
 
@@ -52,7 +51,7 @@ func MakeDir(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"msg": 404})
 		return
 	}
-	_, err = logic.MakeDir(uint(param.ParentID), param.Name)
+	_, err = getFileService(ctx).MakeDir(uint(param.ParentID), param.Name)
 
 	if errors.Is(err, nil) {
 
@@ -71,7 +70,7 @@ func ListAllParents(ctx *gin.Context) {
 	if err != nil {
 		ID = 0
 	}
-	files := logic.GetAllParentFileList(uint(ID))
+	files, _ := getFileService(ctx).GetAllParentFileList(uint(ID))
 	ctx.JSON(http.StatusOK, files)
 }
 
@@ -91,7 +90,7 @@ func UploadFile(ctx *gin.Context) {
 	}
 	fullPath := ctx.DefaultPostForm("fullPath", "")
 
-	err = logic.SaveFile(uint(parentID), file, fullPath)
+	err = getFileService(ctx).SaveFile(uint(parentID), file, fullPath)
 	if err != nil {
 		log.Println("文件信息保存失败")
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "文件信息保存失败"})
@@ -110,7 +109,7 @@ func DownloadFile(ctx *gin.Context) {
 		return
 	}
 
-	path, fileName, err := logic.GetFileLocalPathAndFileName(uint(ID))
+	path, fileName, err := getFileService(ctx).GetFileLocalPathAndFileName(uint(ID))
 	if err != nil {
 		log.Println("找不到文件")
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "找不到文件"})
@@ -136,7 +135,7 @@ func RenameFile(ctx *gin.Context) {
 		return
 	}
 
-	err = logic.RenameFile(params.ID, params.NewFileName)
+	err = getFileService(ctx).RenameFile(params.ID, params.NewFileName)
 
 	if err != nil {
 		log.Println("文件不存在")
@@ -156,7 +155,7 @@ func DeleteFile(ctx *gin.Context) {
 		return
 	}
 
-	err = logic.DeleteFile(uint(ID))
+	err = getFileService(ctx).DeleteFile(uint(ID))
 
 	if err != nil {
 		log.Println("文件删除失败")

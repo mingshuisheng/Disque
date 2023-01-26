@@ -29,6 +29,7 @@ const emits = defineEmits<SE<{
   display: flex;
   flex-direction: column;
   align-items: center;
+  //-webkit-user-drag: none;
 
   &:hover {
     cursor: pointer;
@@ -37,6 +38,7 @@ const emits = defineEmits<SE<{
   .file-base-icon {
     width: 100px;
     height: 100px;
+    -webkit-user-drag: none;
   }
   .file-base-name{
 

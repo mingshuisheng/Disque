@@ -5,9 +5,11 @@ import (
 	"time"
 )
 
+type PrimaryKey = uint
+
 type Model struct {
-	ID        uint `gorm:"primarykey"`
+	ID        PrimaryKey `gorm:"primarykey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }

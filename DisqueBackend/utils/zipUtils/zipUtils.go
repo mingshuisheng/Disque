@@ -8,7 +8,7 @@ import (
 )
 
 func ZipSource(source, target string) error {
-	// 1. Create a ZIP file and zip.Writer
+	// 1. Insert a ZIP file and zip.Writer
 	f, err := os.Create(target)
 	if err != nil {
 		return err
@@ -24,7 +24,7 @@ func ZipSource(source, target string) error {
 			return err
 		}
 
-		// 3. Create a local file header
+		// 3. Insert a local file header
 		header, err := zip.FileInfoHeader(info)
 		if err != nil {
 			return err
@@ -42,7 +42,7 @@ func ZipSource(source, target string) error {
 			header.Name += "/"
 		}
 
-		// 5. Create writer for the file header and save content of the file
+		// 5. Insert writer for the file header and save content of the file
 		headerWriter, err := writer.CreateHeader(header)
 		if err != nil {
 			return err

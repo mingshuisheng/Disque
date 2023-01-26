@@ -3,6 +3,7 @@ module disqueBackend
 go 1.19
 
 require (
+	emperror.dev/errors v0.8.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/google/uuid v1.3.0
 	github.com/otiai10/copy v1.9.0
@@ -11,7 +12,6 @@ require (
 )
 
 require (
-	emperror.dev/errors v0.8.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect

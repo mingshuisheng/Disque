@@ -17,10 +17,7 @@ const currentFile = ref<FileData>({
   ExtType: '',
   CreatedAt: new Date(),
   UpdatedAt: new Date(),
-  DeletedAt: new Date()
 })
-
-// const initFileState = () => execute(0, {id: currentFile.value.ID})
 
 const reloadFileState = () => execute(0, {id: currentFile.value.ID})
 

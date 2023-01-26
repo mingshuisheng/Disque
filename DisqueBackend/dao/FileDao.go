@@ -2,59 +2,44 @@ package dao
 
 import (
 	"disqueBackend/models"
+	"gorm.io/gorm"
 	"strconv"
 	"strings"
 )
 
-func QueryFileList(parentID uint) ([]models.File, error) {
+type _FileDao struct {
+	*_BaseDao[models.File]
+}
+
+func (*_FileDao) ListChildren(ID models.PrimaryKey, dbs *gorm.DB) ([]models.File, error) {
 	var files []models.File
-	tx := DB.Where("parent_id = ?", parentID).Find(&files)
+	tx := resolveDB(dbs).Where("parent_id = ?", ID).Find(&files)
 	return files, tx.Error
 }
 
-func QueryFileByParentIDAndName(parentID uint, fileName string) (models.File, error) {
+func (*_FileDao) FindByParentIDAndName(parentID models.PrimaryKey, fileName string, dbs *gorm.DB) (models.File, error) {
 	var file models.File
-	tx := DB.Where("parent_id = ?", parentID).Where("name = ?", fileName).Find(&file)
+	tx := resolveDB(dbs).Where("parent_id = ?", parentID).Where("name = ?", fileName).Find(&file)
 	return file, tx.Error
 }
 
-func QueryAllChildrenByTreeID(treeID string) ([]models.File, error) {
+func (*_FileDao) ListByTreeID(treeID string, dbs *gorm.DB) ([]models.File, error) {
 	var files []models.File
-	tx := DB.Where("tree_id like ?", treeID+"-%").Find(&files)
+	tx := resolveDB(dbs).Where("tree_id like ?", treeID+"-%").Find(&files)
 	return files, tx.Error
 }
 
-func InsertFile(file *models.File) error {
-	tx := DB.Create(file)
-	return tx.Error
-}
-
-func UpdateFile(file *models.File) error {
-	tx := DB.Save(file)
-	return tx.Error
-}
-
-func DeleteFile(ID uint) error {
-	tx := DB.Delete(&models.File{}, ID)
-	return tx.Error
-}
-
-func QueryFile(ID uint) (models.File, error) {
-	var file models.File
-	tx := DB.Where("id = ?", ID).First(&file)
-	return file, tx.Error
-}
-
-func QueryAllParentList(ID uint) ([]models.File, error) {
+func (dao *_FileDao) ListAllParents(ID models.PrimaryKey, dbs *gorm.DB) ([]models.File, error) {
+	db := resolveDB(dbs)
 	var files []models.File
-	file, err := QueryFile(ID)
+	file, err := dao.Find(ID, db)
 	if err != nil {
 		return files, err
 	}
 
 	parents := strings.Split(file.TreeID, "-")
 
-	var parentIDList []uint
+	var parentIDList []models.PrimaryKey
 
 	parentIDList = append(parentIDList, file.ID)
 
@@ -68,21 +53,6 @@ func QueryAllParentList(ID uint) ([]models.File, error) {
 		}
 	}
 
-	tx := DB.Where("ID IN ?", parentIDList).Find(&files)
-	if tx.Error != nil {
-		return files, tx.Error
-	}
-
-	return files, nil
-}
-
-func InsertLocalFile(localFile *models.LocalFile) error {
-	tx := DB.Create(localFile)
-	return tx.Error
-}
-
-func QueryLocalFile(ID uint) (models.LocalFile, error) {
-	localFile := models.LocalFile{}
-	tx := DB.First(&localFile, ID)
-	return localFile, tx.Error
+	tx := db.Where("ID IN ?", parentIDList).Find(&files)
+	return files, tx.Error
 }
