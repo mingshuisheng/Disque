@@ -3,45 +3,43 @@ package dao
 import (
 	"context"
 	"disqueBackend/models"
+	"disqueBackend/utils/transactionUtils"
 	"gorm.io/gorm"
 )
 
-type _BaseDao[T any] int
-
-func (*_BaseDao[T]) Insert(model *T, dbs *gorm.DB) error {
-	return resolveDB(dbs).Create(&model).Error
+type _BaseDao[T any] struct {
+	transactionHolder *transactionUtils.TransactionHolder
 }
 
-func (*_BaseDao[T]) Delete(ID models.PrimaryKey, dbs *gorm.DB) error {
+func createBaseDao[T any](transactionHolder *transactionUtils.TransactionHolder) *_BaseDao[T] {
+	return &_BaseDao[T]{
+		transactionHolder: transactionHolder,
+	}
+}
+
+func (baseDao *_BaseDao[T]) Insert(model *T) error {
+	return baseDao.resolveDB().Create(&model).Error
+}
+
+func (baseDao *_BaseDao[T]) Delete(ID models.PrimaryKey) error {
 	var model T
-	return resolveDB(dbs).Delete(&model, ID).Error
+	return baseDao.resolveDB().Delete(&model, ID).Error
 }
 
-func (*_BaseDao[T]) Update(model *T, dbs *gorm.DB) error {
-	return resolveDB(dbs).Save(&model).Error
+func (baseDao *_BaseDao[T]) Update(model *T) error {
+	return baseDao.resolveDB().Save(&model).Error
 }
 
-func (*_BaseDao[T]) Find(ID models.PrimaryKey, dbs *gorm.DB) (T, error) {
+func (baseDao *_BaseDao[T]) Find(ID models.PrimaryKey) (T, error) {
 	var model T
-	tx := resolveDB(dbs).First(&model, ID)
+	tx := baseDao.resolveDB().First(&model, ID)
 	return model, tx.Error
 }
 
-type TransactionCallback = func(tx *gorm.DB) error
-
-func Transaction(db *gorm.DB, fc TransactionCallback) (err error) {
-	return db.Transaction(func(tx *gorm.DB) error {
-		return fc(tx)
-	})
+func (baseDao *_BaseDao[T]) resolveDB() *gorm.DB {
+	return baseDao.transactionHolder.GetDB()
 }
 
 func GetDBWithContext(ctx context.Context) *gorm.DB {
 	return _DB.WithContext(ctx)
-}
-
-func resolveDB(dbs ...*gorm.DB) *gorm.DB {
-	if len(dbs) > 0 && dbs[0] != nil {
-		return dbs[0]
-	}
-	return _DB.WithContext(context.Background())
 }

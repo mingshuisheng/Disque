@@ -2,37 +2,43 @@ package dao
 
 import (
 	"disqueBackend/models"
-	"gorm.io/gorm"
+	"disqueBackend/utils/transactionUtils"
 	"strconv"
 	"strings"
 )
 
-type _FileDao struct {
+type FileDao struct {
 	*_BaseDao[models.File]
 }
 
-func (*_FileDao) ListChildren(ID models.PrimaryKey, dbs *gorm.DB) ([]models.File, error) {
+func CreateFileDao(holder *transactionUtils.TransactionHolder) *FileDao {
+	return &FileDao{
+		_BaseDao: createBaseDao[models.File](holder),
+	}
+}
+
+func (fileDao *FileDao) ListChildren(ID models.PrimaryKey) ([]models.File, error) {
 	var files []models.File
-	tx := resolveDB(dbs).Where("parent_id = ?", ID).Find(&files)
+	tx := fileDao.resolveDB().Where("parent_id = ?", ID).Find(&files)
 	return files, tx.Error
 }
 
-func (*_FileDao) FindByParentIDAndName(parentID models.PrimaryKey, fileName string, dbs *gorm.DB) (models.File, error) {
+func (fileDao *FileDao) FindByParentIDAndName(parentID models.PrimaryKey, fileName string) (models.File, error) {
 	var file models.File
-	tx := resolveDB(dbs).Where("parent_id = ?", parentID).Where("name = ?", fileName).Find(&file)
+	tx := fileDao.resolveDB().Where("parent_id = ?", parentID).Where("name = ?", fileName).Find(&file)
 	return file, tx.Error
 }
 
-func (*_FileDao) ListByTreeID(treeID string, dbs *gorm.DB) ([]models.File, error) {
+func (fileDao *FileDao) ListByTreeID(treeID string) ([]models.File, error) {
 	var files []models.File
-	tx := resolveDB(dbs).Where("tree_id like ?", treeID+"-%").Find(&files)
+	tx := fileDao.resolveDB().Where("tree_id like ?", treeID+"-%").Find(&files)
 	return files, tx.Error
 }
 
-func (dao *_FileDao) ListAllParents(ID models.PrimaryKey, dbs *gorm.DB) ([]models.File, error) {
-	db := resolveDB(dbs)
+func (fileDao *FileDao) ListAllParents(ID models.PrimaryKey) ([]models.File, error) {
+	db := fileDao.resolveDB()
 	var files []models.File
-	file, err := dao.Find(ID, db)
+	file, err := fileDao.Find(ID)
 	if err != nil {
 		return files, err
 	}

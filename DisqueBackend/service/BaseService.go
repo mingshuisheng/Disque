@@ -3,21 +3,35 @@ package service
 import (
 	"context"
 	"disqueBackend/dao"
-	"gorm.io/gorm"
+	"disqueBackend/utils/transactionUtils"
 )
 
-type BaseService struct {
+type _BaseService struct {
 	ctx context.Context
-	db  *gorm.DB
+	//db  *gorm.DB
+	transactionHolder *transactionUtils.TransactionHolder
 }
 
-func (baseService BaseService) transaction(fc func(tx *gorm.DB) (err error)) error {
-	return dao.Transaction(baseService.getDB(), fc)
-}
-
-func (baseService BaseService) getDB() *gorm.DB {
-	if baseService.db == nil {
-		baseService.db = dao.GetDBWithContext(baseService.ctx)
+func createBaseService(ctx context.Context) *_BaseService {
+	return &_BaseService{
+		ctx:               ctx,
+		transactionHolder: transactionUtils.CreateTransactionHolder(dao.GetDBWithContext(ctx)),
 	}
-	return baseService.db
+}
+
+func (baseService _BaseService) transaction(fc func() (err error)) error {
+
+	defer func() {
+		if rec := recover(); rec != nil {
+			baseService.transactionHolder.Rollback()
+		}
+	}()
+
+	baseService.transactionHolder.Open()
+	if err := fc(); err != nil {
+		baseService.transactionHolder.Rollback()
+		return err
+	}
+	baseService.transactionHolder.Commit()
+	return nil
 }

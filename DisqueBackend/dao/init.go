@@ -8,9 +8,6 @@ import (
 
 var _DB *gorm.DB
 
-var FileDao *_FileDao
-var LocalFileDao *_LocalFileDao
-
 func Init() {
 	var db *gorm.DB
 	var err error
@@ -26,8 +23,4 @@ func Init() {
 	if err = db.AutoMigrate(&models.LocalFile{}); err != nil {
 		panic("failed to migrate models.LocalFile")
 	}
-
-	_DB = db
-	FileDao = &_FileDao{_BaseDao: new(_BaseDao[models.File])}
-	LocalFileDao = &_LocalFileDao{_BaseDao: new(_BaseDao[models.LocalFile])}
 }

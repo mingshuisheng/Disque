@@ -10,7 +10,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/google/uuid"
 	cp "github.com/otiai10/copy"
-	"gorm.io/gorm"
 	"mime/multipart"
 	"os"
 	"strconv"
@@ -18,113 +17,101 @@ import (
 )
 
 type FileService struct {
-	BaseService
+	*_BaseService
+	fileDao      *dao.FileDao
+	localFileDao *dao.LocalFileDao
 }
 
 func CreateFileService(ctx context.Context) *FileService {
+	baseService := createBaseService(ctx)
 	return &FileService{
-		BaseService{ctx, nil},
+		_BaseService: baseService,
+		fileDao:      dao.CreateFileDao(baseService.transactionHolder),
+		localFileDao: dao.CreateLocalFileDao(baseService.transactionHolder),
 	}
 }
 
 func (fileService *FileService) GetFileList(ID models.PrimaryKey) ([]models.File, error) {
-	fileList, err := dao.FileDao.ListChildren(ID, fileService.getDB())
+	fileList, err := fileService.fileDao.ListChildren(ID)
 	return fileList, errors.Wrapf(err, "文件不存在")
 }
 
-func (fileService *FileService) makeDir(db *gorm.DB, parentID models.PrimaryKey, name string) (newDir models.File, err error) {
-	treeID := models.RootFile.TreeID
-	if parentID != 0 {
-		info, err := dao.FileDao.Find(parentID, db)
-		if err != nil {
-			return models.File{}, errorUtils.Combine(err, ParentFileNotExitError)
+func (fileService *FileService) MakeDir(parentID models.PrimaryKey, name string) (newDir models.File, err error) {
+	err = fileService.transaction(func() error {
+		fileDao := fileService.fileDao
+		treeID := models.RootFile.TreeID
+		if parentID != 0 {
+			info, err := fileDao.Find(parentID)
+			if err != nil {
+				return errorUtils.Combine(err, ParentFileNotExitError)
+			}
+			treeID = info.TreeID
 		}
-		treeID = info.TreeID
-	}
 
-	newDir = models.File{ParentID: parentID, Name: name, IsDir: true}
+		newDir = models.File{ParentID: parentID, Name: name, IsDir: true}
 
-	oldFile, err := dao.FileDao.FindByParentIDAndName(parentID, name, db)
+		oldFile, err := fileDao.FindByParentIDAndName(parentID, name)
 
-	if err != nil {
-		err = errorUtils.Combine(err, ParentFileNotExitError)
-		return
-	}
+		if err != nil {
+			return errorUtils.Combine(err, ParentFileNotExitError)
+		}
 
-	if oldFile.ID != 0 {
-		return newDir, nil
-	}
+		if oldFile.ID != 0 {
+			return nil
+		}
 
-	err = dao.FileDao.Insert(&newDir, db)
-	if err != nil {
-		return newDir, errorUtils.Combine(err, FolderCreateError)
-	}
-	newDir.TreeID = treeID + "-" + strconv.Itoa(int(newDir.ID))
-	err = dao.FileDao.Update(&newDir, db)
+		err = fileDao.Insert(&newDir)
+		if err != nil {
+			return errorUtils.Combine(err, FolderCreateError)
+		}
+		newDir.TreeID = treeID + "-" + strconv.Itoa(int(newDir.ID))
+		return fileDao.Update(&newDir)
+	})
 
 	return newDir, errorUtils.Combine(err, FolderCreateError)
 
 }
 
-func (fileService *FileService) MakeDir(parentID uint, name string) (models.File, error) {
-	var newDir models.File
-	err := fileService.transaction(func(tx *gorm.DB) error {
-		resultDir, innErr := fileService.makeDir(tx, parentID, name)
-		newDir = resultDir
-		return innErr
-	})
-	return newDir, err
-}
-
-func (fileService *FileService) makeAllDir(db *gorm.DB, parentID uint, path string) (lastFile models.File, err error) {
+func (fileService *FileService) MakeAllDir(parentID uint, path string) (lastFile models.File, err error) {
 	folderNames := strings.Split(path, "/")
+	err = fileService.transaction(func() error {
+		for _, folderName := range folderNames {
+			if folderName == "" {
+				continue
+			}
 
-	for _, folderName := range folderNames {
-		if folderName == "" {
-			continue
+			if lastFile, err = fileService.MakeDir(parentID, folderName); err != nil {
+				return errors.Wrapf(err, "创建文件夹%s失败", folderName)
+			}
+			parentID = lastFile.ID
 		}
-
-		if lastFile, err = fileService.makeDir(db, parentID, folderName); err != nil {
-			return models.File{}, errors.Wrapf(err, "创建文件夹%s失败", folderName)
-		}
-		parentID = lastFile.ID
-	}
-	return lastFile, nil
-}
-
-func (fileService *FileService) MakeAllDir(parentID uint, path string) (models.File, error) {
-	var lastFile models.File
-	err := fileService.transaction(func(tx *gorm.DB) error {
-		dir, err := fileService.makeAllDir(tx, parentID, path)
-		lastFile = dir
-		return err
+		return nil
 	})
 	return lastFile, err
 }
 
 func (fileService *FileService) GetAllParentFileList(ID uint) ([]models.File, error) {
-	fileList, err := dao.FileDao.ListAllParents(ID, fileService.getDB())
+	fileList, err := fileService.fileDao.ListAllParents(ID)
 	return fileList, err
 }
 
 func (fileService *FileService) GetFileInfo(ID uint) (models.File, error) {
-	file, err := dao.FileDao.Find(ID, fileService.getDB())
+	file, err := fileService.fileDao.Find(ID)
 	return file, errorUtils.Combine(err, FileNotExitError)
 }
 
 func (fileService *FileService) SaveFile(parentID uint, file *multipart.FileHeader, fullPath string) error {
-
 	//将文件保存到本地
-	fileName, dst, ext, outterErr := fileUtils.SaveFile(file)
-	if outterErr != nil {
-		return errors.Wrapf(outterErr, "文件保存失败")
+	fileName, dst, ext, outerErr := fileUtils.SaveFile(file)
+	if outerErr != nil {
+		return errors.Wrapf(outerErr, "文件保存失败")
 	}
 
-	outterErr = fileService.transaction(func(tx *gorm.DB) error {
+	saveFile := func() error {
 		var err error
 		var parentFile models.File
 		//查看是否需要创建文件夹，并且重置获取父文件夹信息
-		if parentFile, err = fileService.resolveParent(tx, parentID, file.Filename, fullPath); err != nil {
+		if parentFile, err = fileService.resolveParent(parentID, file.Filename, fullPath); err != nil {
 			return err
 		}
 
@@ -133,11 +120,11 @@ func (fileService *FileService) SaveFile(parentID uint, file *multipart.FileHead
 			LocalPath: dst,
 		}
 
-		if err = dao.LocalFileDao.Insert(&localFileInfo, tx); err != nil {
+		if err = fileService.localFileDao.Insert(&localFileInfo); err != nil {
 			return err
 		}
 
-		oldFile, err := dao.FileDao.FindByParentIDAndName(parentFile.ParentID, file.Filename, tx)
+		oldFile, err := fileService.fileDao.FindByParentIDAndName(parentFile.ParentID, file.Filename)
 		if err != nil {
 			return errors.Wrapf(err, "文件保存失败")
 		}
@@ -145,7 +132,7 @@ func (fileService *FileService) SaveFile(parentID uint, file *multipart.FileHead
 		if oldFile.ID != 0 {
 			//更新
 			oldFile.LocalFileID = localFileInfo.ID
-			err = dao.FileDao.Update(&oldFile, tx)
+			err = fileService.fileDao.Update(&oldFile)
 		} else {
 			//创建
 			fileInfo := models.File{
@@ -156,7 +143,7 @@ func (fileService *FileService) SaveFile(parentID uint, file *multipart.FileHead
 				ExtType:     ext,
 			}
 
-			if err = dao.FileDao.Insert(&fileInfo, tx); err != nil {
+			if err = fileService.fileDao.Insert(&fileInfo); err != nil {
 				return errors.Wrapf(err, "文件保存失败")
 			}
 
@@ -164,19 +151,19 @@ func (fileService *FileService) SaveFile(parentID uint, file *multipart.FileHead
 
 			fileInfo.TreeID = parentFile.TreeID + "-" + strconv.Itoa(int(fileInfo.ID))
 
-			err = dao.FileDao.Update(&fileInfo, tx)
+			err = fileService.fileDao.Update(&fileInfo)
 		}
 
 		return err
-	})
+	}
 
-	return errors.Wrapf(outterErr, "文件保存失败")
+	return errors.Wrapf(fileService.transaction(saveFile), "文件保存失败")
 }
 
-func (fileService *FileService) resolveParent(db *gorm.DB, parentID models.PrimaryKey, fileName, fullPath string) (models.File, error) {
+func (fileService *FileService) resolveParent(parentID models.PrimaryKey, fileName, fullPath string) (models.File, error) {
 	parentFile := models.RootFile
 	if parentID != 0 {
-		parentInfo, err := dao.FileDao.Find(parentID, db)
+		parentInfo, err := fileService.fileDao.Find(parentID)
 		if err != nil || parentInfo.ID == 0 || parentInfo.IsDir == false {
 			return models.File{}, errorUtils.Combine(err, ParentFileNotExitError)
 		}
@@ -190,7 +177,7 @@ func (fileService *FileService) resolveParent(db *gorm.DB, parentID models.Prima
 		}
 		fullPath = fullPath[start:strings.LastIndex(fullPath, "/"+fileName)]
 		if fullPath != "" {
-			dir, err := fileService.makeAllDir(db, parentFile.ID, fullPath)
+			dir, err := fileService.MakeAllDir(parentFile.ID, fullPath)
 			if err != nil {
 				return models.File{}, err
 			}
@@ -201,28 +188,27 @@ func (fileService *FileService) resolveParent(db *gorm.DB, parentID models.Prima
 }
 
 func (fileService *FileService) RenameFile(ID uint, newFileName string) error {
-	err := fileService.transaction(func(tx *gorm.DB) error {
-		fileInfo, err := dao.FileDao.Find(ID, tx)
+	err := fileService.transaction(func() error {
+		fileInfo, err := fileService.fileDao.Find(ID)
 
 		if err != nil {
 			return errorUtils.Combine(err, FileNotExitError)
 		}
 
 		fileInfo.Name = newFileName
-		return dao.FileDao.Update(&fileInfo, tx)
+		return fileService.fileDao.Update(&fileInfo)
 	})
 	return errors.Wrapf(err, "重命名失败")
 }
 
 func (fileService *FileService) DeleteFile(ID uint) error {
-	return errors.Wrapf(dao.FileDao.Delete(ID, fileService.getDB()), "文件删除失败")
+	return errors.Wrapf(fileService.fileDao.Delete(ID), "文件删除失败")
 }
 
 func (fileService *FileService) GetFileLocalPathAndFileName(ID uint) (path string, fileName string, err error) {
-	db := fileService.getDB()
 	var file models.File
 
-	if file, err = dao.FileDao.Find(ID, db); err != nil {
+	if file, err = fileService.fileDao.Find(ID); err != nil {
 		fileName = file.Name
 		err = errorUtils.Combine(err, FileNotExitError)
 		return
@@ -230,12 +216,12 @@ func (fileService *FileService) GetFileLocalPathAndFileName(ID uint) (path strin
 
 	if file.IsDir {
 		fileName = file.Name + ".zip"
-		path, err = fileService.toZipFile(db, file)
+		path, err = fileService.toZipFile(file)
 		err = errors.Wrapf(err, "zip文件创建失败")
 		return
 	}
 
-	localFile, err := dao.LocalFileDao.Find(file.LocalFileID, db)
+	localFile, err := fileService.localFileDao.Find(file.LocalFileID)
 
 	path = localFile.LocalPath
 
@@ -243,7 +229,7 @@ func (fileService *FileService) GetFileLocalPathAndFileName(ID uint) (path strin
 	return
 }
 
-func (fileService *FileService) toZipFile(db *gorm.DB, file models.File) (path string, err error) {
+func (fileService *FileService) toZipFile(file models.File) (path string, err error) {
 	id := strings.ReplaceAll(uuid.New().String(), "-", "")
 
 	tempPath := "./temp/" + id
@@ -252,7 +238,7 @@ func (fileService *FileService) toZipFile(db *gorm.DB, file models.File) (path s
 		return
 	}
 
-	files, err := dao.FileDao.ListByTreeID(file.TreeID, db)
+	files, err := fileService.fileDao.ListByTreeID(file.TreeID)
 
 	if err != nil {
 		return
@@ -262,7 +248,7 @@ func (fileService *FileService) toZipFile(db *gorm.DB, file models.File) (path s
 
 	root := buildTree(file.ID, files)
 
-	err = fileService.mkDirAndCopyFile(db, tempPath, root)
+	err = fileService.mkDirAndCopyFile(tempPath, root)
 	if err != nil {
 		return "", err
 	}
@@ -276,7 +262,7 @@ func (fileService *FileService) toZipFile(db *gorm.DB, file models.File) (path s
 	return
 }
 
-func (fileService *FileService) mkDirAndCopyFile(db *gorm.DB, bastPath string, root *TreeNode) error {
+func (fileService *FileService) mkDirAndCopyFile(bastPath string, root *TreeNode) error {
 	if root.FileInfo.IsDir {
 		//创建当前目录
 		currentPath := bastPath + "/" + root.FileInfo.Name
@@ -287,7 +273,7 @@ func (fileService *FileService) mkDirAndCopyFile(db *gorm.DB, bastPath string, r
 		//递归创建子目录
 		if len(root.Children) > 0 {
 			for _, child := range root.Children {
-				err := fileService.mkDirAndCopyFile(db, currentPath, child)
+				err := fileService.mkDirAndCopyFile(currentPath, child)
 				if err != nil {
 					return err
 				}
@@ -295,7 +281,7 @@ func (fileService *FileService) mkDirAndCopyFile(db *gorm.DB, bastPath string, r
 		}
 	} else {
 		//如果是文件则复制
-		localFileInfo, err := dao.LocalFileDao.Find(root.FileInfo.LocalFileID, db)
+		localFileInfo, err := fileService.localFileDao.Find(root.FileInfo.LocalFileID)
 		if err != nil {
 			return err
 		}
