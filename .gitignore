@@ -1,5 +1,6 @@
 .idea
 .vscode
+local-folder
 build
 disque-frontend/node_modules
 disque-frontend/.idea
